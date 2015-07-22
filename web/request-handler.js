@@ -4,7 +4,9 @@ var fs = require('fs');
 var q = require('q');
 var archive = require('../helpers/archive-helpers');
 // require more modules/folders here!
+var helpers = require('./http-helpers')
 //requiere headers
+var headers = helpers.headers;
 
 var getFixture = function (fixtureName, cb) {
   var fixturePath = archive.paths.archivedSites + "/" + fixtureName;
@@ -13,7 +15,13 @@ var getFixture = function (fixtureName, cb) {
   });
 }
 
-var sendResponse = function(res, data, statusCode){
+var sendResponse = function(res, data, statusCode, h) {
+  var i;
+  if (h) {
+    for (i in h) {
+      headers[i] = h[i];
+    }
+  }
   statusCode = statusCode || 200;
   res.writeHead(statusCode, headers);
   res.end(data);
@@ -44,20 +52,32 @@ var routes = {
     }
   },
   "POST" : {
-    "/" : function (cb) {
+    "/" : function (cb, req, res) {
       var data = '';
       req.on('data', function (chunk) {
         data += chunk;
       });
-      req.on('end', function(){
-        cb(data);
+      req.on('end', function() {
+        var site;
+        if (req.headers["content-type"] === 'application/json') {
+          site = JSON.parse(data).url;
+        } else {
+          site = data.split("=")[1];
+        }
+        fs.appendFile(archive.paths.list, site + "\n", function (err) {
+          if (err) {
+            console.log(err);
+            //send 500?
+          } else {
+            sendResponse(res, "", 302, { location : "http://127.0.0.1:8080" });
+          }
+        });//req.on
       });
     }
   }
 };
 
 exports.handleRequest = function (req, res) {
-
 
   var path = url.parse(req.url);
 
@@ -66,7 +86,7 @@ exports.handleRequest = function (req, res) {
     if (routes[req.method][path.path]) {
       routes[req.method][path.path](function (message) {
         sendResponse(res, message);
-      });
+      }, req, res);
     } else if (exists) {
       fs.readFile(filePath, "utf8", function(err, data) {
         if (err) {
@@ -86,13 +106,4 @@ exports.handleRequest = function (req, res) {
   });
   
 
-};
-
-
-
-var headers = {
-  "access-control-allow-origin": "*",
-  "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
-  "access-control-allow-headers": "content-type, accept",
-  "access-control-max-age": 10 // Seconds.
 };
