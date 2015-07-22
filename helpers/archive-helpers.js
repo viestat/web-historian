@@ -33,20 +33,29 @@ exports.readListOfUrls = function(cb) {
 };
 
 exports.isUrlInList = function(url, cb) {
-  exports.readListOfUrls(function (urls) {
+  var result = false;
+  this.readListOfUrls(function (urls) {
     _.each(urls, function (u) {
       if (u === url) {
-        cb(true);
+        result = true;
       }
     });
-    cb(false);
+    cb(result);
   });
 };
 
-exports.addUrlToList = function(){
+exports.addUrlToList = function(url, cb){
+  fs.appendFile(exports.paths.list, url, function(err) {
+    if (err) {
+      cb(false);
+    } else {
+      cb(true);
+    }
+  });
 };
 
-exports.isUrlArchived = function(){
+exports.isUrlArchived = function() {
+
 };
 
 exports.downloadUrls = function(){
