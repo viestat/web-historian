@@ -85,6 +85,8 @@ exports.downloadUrls = function(urls){
 
         callback = function(response) {
 
+          //check if response has redirected, get that redirect
+
           var data = '';
 
           response.on('data', function (chunk) {
@@ -93,7 +95,11 @@ exports.downloadUrls = function(urls){
 
           response.on('end', function () {
             fs.writeFile(exports.paths.archivedSites + "/" + url, data, function (err) {
-              console.log("written file");
+              if (err) {
+                console.log(err);
+              } else {
+                console.log("written file");
+              }
             });
           });
         }
