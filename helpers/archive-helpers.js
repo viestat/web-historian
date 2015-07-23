@@ -46,9 +46,15 @@ exports.isUrlInList = function(url, cb) {
 };
 
 exports.addUrlToList = function(url, cb){
-  fs.appendFile(exports.paths.list, url, function(err) {
-    if (err) {
-      cb(false);
+  this.isUrlInList(url, function (result) {
+    if (!result) {
+      fs.appendFile(exports.paths.list, url, function(err) {
+        if (err) {
+          cb(false);
+        } else {
+          cb(true);
+        }
+      });//appendFile
     } else {
       cb(true);
     }
@@ -78,14 +84,13 @@ exports.downloadUrls = function(urls){
         };
 
         callback = function(response) {
+
           var data = '';
 
-          //another chunk of data has been recieved, so append it to `data`
           response.on('data', function (chunk) {
             data += chunk;
           });
 
-          //the whole response has been recieved, so we just print it out here
           response.on('end', function () {
             fs.writeFile(exports.paths.archivedSites + "/" + url, data, function (err) {
               console.log("written file");

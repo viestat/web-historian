@@ -4,7 +4,7 @@ var fs = require('fs');
 var q = require('q');
 var archive = require('../helpers/archive-helpers');
 // require more modules/folders here!
-var helpers = require('./http-helpers')
+var helpers = require('./http-helpers');
 //requiere headers
 var headers = helpers.headers;
 
@@ -41,15 +41,13 @@ var routes = {
     "/favicon.ico" : function (cb) {
       cb("Favicon");
     },
-    "/test" : function (cb) {
-
-
-      archive.downloadUrls(['www.google.com']);
-
-
-    },
-    "archive" : function (cb) {
+    "/archive" : function (cb) {
       cb(archive.paths.list);
+    },
+    "/loading" : function (cb) {
+      fs.readFile(__dirname + "/public/loading.html", "utf8", function (err, data) {
+        cb(data);
+      });
     },
     "404" : function (cb) {
       cb("Page not found");
@@ -72,11 +70,19 @@ var routes = {
           site = data.split("=")[1];
         }
         fs.appendFile(archive.paths.list, site + "\n", function (err) {
+          var redirect = "http://127.0.0.1:8080/";
           if (err) {
-            console.log(err);
-            //send 500?
+            routes["GET"]["500"](function (message) {
+              sendResponse(res, message);
+            });
           } else {
-            sendResponse(res, "", 302, { location : "http://127.0.0.1:8080" });
+            archive.isUrlArchived(site, function (exists) {
+              if (exists) {
+                sendResponse(res, "", 302, { location : redirect + site});
+              } else {
+                sendResponse(res, "", 302, { location : redirect + "loading"});
+              }
+            });
           }
         });//req.on
       });
