@@ -41,6 +41,13 @@ var routes = {
     "/favicon.ico" : function (cb) {
       cb("Favicon");
     },
+    "/test" : function (cb) {
+
+
+      archive.downloadUrls(['www.google.com']);
+
+
+    },
     "archive" : function (cb) {
       cb(archive.paths.list);
     },
