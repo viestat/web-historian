@@ -28,6 +28,27 @@ var sendResponse = function(res, data, statusCode, h) {
   res.end(data);
 };
 
+var fileTypes = {
+  "txt" : function () {
+    return "text/text";
+  },
+  "html" : function () {
+    return "text/html";
+  },
+  "css" : function () {
+    return "text/css";
+  },
+  "json" : function () {
+    return "application/json";
+  },
+  "jpg" : function () {
+    return "image/jpeg";
+  },
+  "jpeg" : function () {
+    return "image/jpeg";
+  }
+};
+
 var routes = {
   "GET" : {
     "/" : function (cb) {
@@ -101,30 +122,36 @@ var routes = {
 exports.handleRequest = function (req, res) {
 
   var path = url.parse(req.url);
+  var ext = path.path.split(".");
 
-  //if there is /[website]
-  getFixture(path.pathname.replace("/", ""), function (exists, filePath) {
-    if (routes[req.method][path.path]) {
-      routes[req.method][path.path](function (message) {
-        sendResponse(res, message);
-      }, req, res);
-    } else if (exists) {
-      fs.readFile(filePath, "utf8", function(err, data) {
-        if (err) {
-          routes["GET"]["500"](function (message) {
-            sendResponse(res, message, 500);
-          });
-        } else {
-          sendResponse(res, data);
-        }
+  if (ext[ext.length - 1] in fileTypes) {
+    helpers.serveAssets(res, __dirname + "/public/" + path.path)
+      .then(function (data) {
+        sendResponse(res, data, 200, {"Content-Type" : fileTypes[ext[ext.length - 1]]()}); 
       });
-    
-    } else {
-      routes["GET"]["404"](function (message) {
-        sendResponse(res, message, 404);
-      });
-    }
-  });
-  
+  } else {
+    getFixture(path.pathname.replace("/", ""), function (exists, filePath) {
+      if (routes[req.method][path.path]) {
+        routes[req.method][path.path](function (message) {
+          sendResponse(res, message);
+        }, req, res);
+      } else if (exists) {
+        fs.readFile(filePath, "utf8", function(err, data) {
+          if (err) {
+            routes["GET"]["500"](function (message) {
+              sendResponse(res, message, 500);
+            });
+          } else {
+            sendResponse(res, data);
+          }
+        });
+      
+      } else {
+        routes["GET"]["404"](function (message) {
+          sendResponse(res, message, 404);
+        });
+      }
+    });    
+  }
 
 };

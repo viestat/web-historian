@@ -1,5 +1,6 @@
 var path = require('path');
 var fs = require('fs');
+var q = require('q');
 var archive = require('../helpers/archive-helpers');
 
 exports.headers = headers = {
@@ -10,10 +11,19 @@ exports.headers = headers = {
   'Content-Type': "text/html"
 };
 
-exports.serveAssets = function(res, asset, callback) {
+exports.serveAssets = function(res, asset) {
+  var deferred = q.defer();
   // Write some code here that helps serve up your static files!
   // (Static files are things like html (yours or archived from others...),
   // css, or anything that doesn't change often.)
+  fs.readFile(asset, function (err, data) {
+    if (err) {
+      deferred.reject(err);
+    } else {
+       deferred.resolve(data);
+    }
+  });
+  return deferred.promise;
 };
 
 
