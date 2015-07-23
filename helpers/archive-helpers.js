@@ -2,7 +2,7 @@ var fs = require('fs');
 var path = require('path');
 var _ = require('underscore');
 var http = require('http');
-
+var db = require('../models/db');
 /*
  * You will need to reuse the same paths many times over in the course of this sprint.
  * Consider using the `paths` object below to store frequently used file paths. This way,
@@ -99,6 +99,8 @@ exports.downloadUrls = function(urls){
                 console.log(err);
               } else {
                 console.log("written file");
+                db.insert([Date.now(), exports.paths.archivedSites + "/" + url]);
+
               }
             });
           });

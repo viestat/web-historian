@@ -6,7 +6,7 @@ var archive = require('../helpers/archive-helpers');
 var http = require('http');
 
 module.exports = function () {
-  new CronJob('59 * * * * *', function() {
+  new CronJob('10 * * * * *', function() {
     archive.readListOfUrls(archive.downloadUrls);
   }, null, true, "America/Los_Angeles");
 }

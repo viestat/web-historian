@@ -3,6 +3,7 @@ var url = require('url');
 var fs = require('fs');
 var q = require('q');
 var archive = require('../helpers/archive-helpers');
+var db = require('../models/db');
 // require more modules/folders here!
 var helpers = require('./http-helpers');
 //requiere headers
@@ -36,6 +37,13 @@ var routes = {
         } else {
           cb(data);
         }
+      });
+    },
+    "/sites" : function () {
+      db.select().then(function (results) {
+        console.log(results);
+      }, function (err) {
+        //do 500 error
       });
     },
     "/favicon.ico" : function (cb) {
