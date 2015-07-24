@@ -28,7 +28,6 @@ module.exports = {
     var results = [];
     db.each("SELECT id, url FROM pages", function(err, row) {
       results.push({ id : row.id, url : row.url });
-      console.log("got the data");
     }, function () {
       deferred.resolve(results);
     });

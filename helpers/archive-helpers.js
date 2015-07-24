@@ -13,6 +13,7 @@ var db = require('../models/db');
 exports.paths = {
   siteAssets: path.join(__dirname, '../web/public'),
   archivedSites: path.join(__dirname, '../archives/sites'),
+  archivedScreenshots: path.join(__dirname, '../archives/screenshots'),
   list: path.join(__dirname, '../archives/sites.txt')
 };
 
@@ -98,15 +99,38 @@ exports.downloadUrls = function(urls){
               if (err) {
                 console.log(err);
               } else {
-                console.log("written file");
-                db.insert([Date.now(), exports.paths.archivedSites + "/" + url]);
+                var imgOptions = {
+                  host: "localhost",
+                  port: "8000",
+                  path: "/?url=" + url
+                };
+                var imgData = '';
 
-              }
+                var cb = function (r) {
+
+                  r.on('data', function (chunk) {
+                    imgData += chunk;
+                  });
+
+                  r.on('end', function () {
+                    fs.writeFile(exports.paths.archivedScreenshots + "/" + url + ".png", imgData, function (err) {
+                      if (err) {
+                        console.log(err);
+                      } else {
+                        db.insert([Date.now(), exports.paths.archivedSites + "/" + url]);
+                      }
+                    });
+                  });
+                }
+                //do a request for image
+                http.request(imgOptions, cb).end();
+              } //else
             });
           });
         }
 
         http.request(options, callback).end();
+
 
       } //if
 
