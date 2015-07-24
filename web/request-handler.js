@@ -18,13 +18,16 @@ var getFixture = function (fixtureName, cb) {
 
 var sendResponse = function(res, data, statusCode, h) {
   var i;
-  if (h) {
-    for (i in h) {
-      headers[i] = h[i];
+  if (!h) {
+    h = {};
+  }
+  for (i in headers) {
+    if (! i in h) {
+      h[i] = headers[i];
     }
   }
   statusCode = statusCode || 200;
-  res.writeHead(statusCode, headers);
+  res.writeHead(statusCode, h);
   res.end(data);
 };
 
